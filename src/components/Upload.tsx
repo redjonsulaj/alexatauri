@@ -1,23 +1,38 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useDropzone} from 'react-dropzone';
 import {acceptStyle, activeStyle, baseStyle, rejectStyle} from "./UploadCss";
+import {ToastContainer, toast, ToastOptions} from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function UploadComponent() {
-    const [files, setFiles] = useState([]);
+    const toastConfig: ToastOptions = {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+    };
 
-
-    const onDrop = useCallback((acceptedFiles: any) => {
-        setFiles(acceptedFiles.map((file: Blob | MediaSource) => Object.assign(file, {
-            preview: URL.createObjectURL(file)
-        })));
-        console.log(acceptedFiles);
+    const onDrop = useCallback((af: any) => {
+        console.log(24, af, acceptedFiles)
+        // setFiles(af.map((file: Blob | MediaSource) => Object.assign(file, {
+        //     preview: URL.createObjectURL(file)
+        // })));
+        enableToast('File Uploaded Successfully');
     }, []);
 
-    const {
+    const {acceptedFiles, fileRejections,
         getRootProps, getInputProps, isDragActive, isDragAccept, isDragReject
     } = useDropzone({
-        onDrop, accept: 'image/jpeg, image/png'
+        onDrop, accept: 'json'
     });
+
+    const enableToast = (content = 'Wow so easy!') => toast(content, toastConfig);
+    const dismissAll = () =>  toast.dismiss();
+
+    const [files, setFiles] = useState([]);
 
     const style = useMemo(() => ({
         ...baseStyle,
@@ -51,6 +66,7 @@ function UploadComponent() {
             <div>
                 {thumbs}
             </div>
+            <ToastContainer />
         </section>
     )
 }
