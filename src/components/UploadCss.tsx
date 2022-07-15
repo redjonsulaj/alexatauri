@@ -7,7 +7,7 @@ const baseStyle = {
     borderRadius: 2,
     borderColor: '#eeeeee',
     borderStyle: 'dashed',
-    backgroundColor: '#fafafa',
+    backgroundColor: 'unset',
     color: '#00b5ff',
     transition: 'border .3s ease-in-out'
 };
