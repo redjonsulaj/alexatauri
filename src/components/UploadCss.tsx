@@ -24,4 +24,9 @@ const rejectStyle = {
     borderColor: '#ff1744'
 };
 
-export {baseStyle, activeStyle, acceptStyle, rejectStyle}
+const textarea = {
+    cursor: 'pointer',
+    resize: 'none'
+}
+
+export {baseStyle, activeStyle, acceptStyle, rejectStyle, textarea}

@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useDropzone} from 'react-dropzone';
-import {acceptStyle, activeStyle, baseStyle, rejectStyle} from "./UploadCss";
+import {acceptStyle, activeStyle, baseStyle, rejectStyle, textarea} from "./UploadCss";
 import {toast, ToastContainer, ToastOptions} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -70,11 +70,16 @@ function UploadComponent() {
         ...(isDragReject ? rejectStyle : {})
     }), [isDragActive, isDragReject, isDragAccept]);
 
+    const clickRow = ($event: any) => {
+        const id = ($event.target && $event.target.id) || 0;
+        enableToast(files[id] && files[id]['value'] || 'No information found');
+    }
+
     const thumbs = files.map((file: any, index: number) => {
         // console.error('Detection: ', file)
         return (
             <div key={index}>
-                <textarea value={file.value} cols={20} rows={3} readOnly={true} style={{resize: 'none'}}/>
+                <textarea value={file.value} cols={20} rows={3} readOnly={true} style={textarea} id={index} onClick={clickRow}/>
             </div>
         )
     });
