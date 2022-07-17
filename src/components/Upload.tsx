@@ -6,6 +6,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 function UploadComponent() {
     const [newVersionAvailable, setNewVersionAvailable] = useState(false);
+    const [files, setFiles] = useState([]);
 
     const toastConfig: ToastOptions = {
         position: "top-right",
@@ -17,34 +18,37 @@ function UploadComponent() {
         progress: undefined,
     };
 
-    const onDrop = useCallback((acceptedFiles: any) => {
+    const onDrop = useCallback(async (acceptedFiles: any) => {
         if (acceptedFiles && acceptedFiles.length > 0) {
-            enableToast('File Uploaded Successfully');
-            acceptedFiles.forEach( (file: Blob) => {
+            const jsonResponse = await Promise.all(acceptedFiles.map((file: Blob) => {
                 let fr = new FileReader();
-                fileReader(fr);
-                fr.readAsText(file)
-            });
-            return acceptedFiles;
+                fr.readAsText(file);
+                return fileReader(fr);
+            }));
+            const merged: any = [].concat.apply([], jsonResponse);
+            setFiles(merged.map((file: any) => Object.assign({}, {value: JSON.stringify(file, null, 2)})));
+            if (!!merged) {
+                enableToast('File Uploaded Successfully');
+            }
         }
     }, []);
 
-    function fileReader(fr: FileReader) {
-        fr.onload = function(e: any) {
-            let result = JSON.parse(e.target.result as string);
-            // const formatter = JSON.stringify(result, null, 2).replace(/[\])}[{(]/g, '');
-            const _result = Object.keys(result).reduce( (a: any, c) => {
-                if (a && !!a.length) {
-                    a.push({[c]: result[c]})
-                } else {
-                    a = [];
-                    a.push({[c]: result[c]})
-                }
-                return a;
-            }, []);
-            const _result2: any = [...files, ..._result]
-            setFiles(_result2.map((file: any, index: any) => Object.assign({}, {value: JSON.stringify(file, null, 2), index: index})));
-        };
+    async function fileReader(fr: FileReader) {
+        return new Promise((resolve, reject) => {
+            fr.onload = function (e: any) {
+                let result = JSON.parse(e.target.result as string);
+                const _result = Object.keys(result).reduce((a: any, c) => {
+                    if (a && !!a.length) {
+                        a.push({[c]: result[c]})
+                    } else {
+                        a = [];
+                        a.push({[c]: result[c]})
+                    }
+                    return a;
+                }, []);
+                resolve(_result);
+            };
+        })
     }
 
     const {acceptedFiles, fileRejections,
@@ -55,11 +59,10 @@ function UploadComponent() {
 
     const enableToast = (content = 'Wow so easy!') => {
         toast(content, toastConfig);
-        setTimeout( () =>  setNewVersionAvailable(true), 1000);
+        setTimeout(() => setNewVersionAvailable(true), 1000);
     };
     const dismissAll = () => toast.dismiss();
 
-    const [files, setFiles] = useState([]);
     const style = useMemo(() => ({
         ...baseStyle,
         ...(isDragActive ? activeStyle : {}),
@@ -67,26 +70,21 @@ function UploadComponent() {
         ...(isDragReject ? rejectStyle : {})
     }), [isDragActive, isDragReject, isDragAccept]);
 
-    const thumbs = files.map((file: any) => {
+    const thumbs = files.map((file: any, index: number) => {
         // console.error('Detection: ', file)
         return (
-            <div key={file.index}>
+            <div key={index}>
                 <textarea value={file.value} cols={20} rows={3} readOnly={true} style={{resize: 'none'}}/>
             </div>
         )
     });
 
-    // // Clean up images
-    // useEffect(() => () => {
-    //     files.forEach((file: any) => URL.revokeObjectURL(file.preview));
-    // }, [files]);
-
-    // useEffect(() => {
-    //     if (newVersionAvailable) {
-    //         dismissAll();
-    //     }
-    //     }, [newVersionAvailable]
-    // );
+    useEffect(() => {
+        if (newVersionAvailable) {
+            dismissAll();
+        }
+        }, [newVersionAvailable]
+    );
 
     return (
         <section>
@@ -97,7 +95,7 @@ function UploadComponent() {
             <div>
                 {thumbs}
             </div>
-            <ToastContainer />
+            <ToastContainer/>
         </section>
     )
 }
